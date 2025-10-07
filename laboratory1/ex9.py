@@ -1,7 +1,7 @@
 import cv2
 
 # считываю видео с камеры телефона через ip webcam
-video = cv2.VideoCapture("http://192.168.1.51:8080/video")
+video = cv2.VideoCapture("http://10.177.142.97:8080/video")
 
 while True:
     ret, frame = video.read()
