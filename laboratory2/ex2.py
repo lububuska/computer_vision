@@ -34,12 +34,12 @@ while True:
         break
         
     # преобразую кадр из bgr в hsv
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # создаю две маски для диапазонов красного для проверки принадлежности пикселя
     # inRange создает черно-белую маску, если пиксель попадает в диапазон он становится белым, если нет - черным
-    mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-    mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+    mask1 = cv2.inRange(frameHSV, lower_red1, upper_red1)
+    mask2 = cv2.inRange(frameHSV, lower_red2, upper_red2)
     mask_union = cv2.bitwise_or(mask1, mask2)
 
     red_part = cv2.bitwise_and(frame, frame, mask=mask_union)
