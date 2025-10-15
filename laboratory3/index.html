@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Размытие изображение по Гауссу</title>
+        <style>
+            .container{
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                gap: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div>
+                <h3>Оригинальное изображение</h3>
+                <canvas id="original"></canvas>
+            </div>
+            <div>
+                <h3>Размытое изображение</h3>
+                <canvas id="blurred"></canvas>
+            </div>
+        </div>
+        <script>
+          // формула Гаусса
+          function gauss(x, y, a, b, sigma) {
+              return (1 / (2 * Math.PI * sigma * sigma)) * Math.exp(-(((x - a) ** 2 + (y - b) ** 2) / (2 * sigma * sigma)));
+          }
+          
+          // строю матрицу Гаусса по переданному размеру ядра и стандартному отклонению
+          function makeKernel(kernelSize, sigma) {
+              // матрица из нулей
+              const kernel = Array.from({ length: kernelSize }, () => Array(kernelSize).fill(0));
+              const a = Math.floor(kernelSize / 2);
+              const b = Math.floor(kernelSize / 2);
+              let sum = 0;
+          
+              for (let y = 0; y < kernelSize; y++) {
+                  for (let x = 0; x < kernelSize; x++) {
+                      const value = gauss(x, y, a, b, sigma);
+                      kernel[y][x] = value;
+                      sum += value;
+                  }
+              }
+          
+              // нормирую матрицу, чтобы сумма элементов равнялась 1 
+              for (let y = 0; y < kernelSize; y++) {
+                  for (let x = 0; x < kernelSize; x++) {
+                      kernel[y][x] /= sum;
+                  }
+              }
+              return kernel;
+          }
+          
+          // применяю гауссов фильтр
+          function applyGaussianFilterManual(imageData, width, height, kernel) {
+              // специальный тип для изображений
+              const output = new Uint8ClampedArray(imageData.length);
+              const halfKernel = Math.floor(kernel.length / 2);
+          
+              // цикл по строкам изображения
+              for (let y = halfKernel; y < height - halfKernel; y++) {
+                // цикл по столбцам изображения
+                  for (let x = halfKernel; x < width - halfKernel; x++) {
+                      let r = 0, g = 0, b = 0;
+                      // цикл по строкам ядра
+                      for (let ky = 0; ky < kernel.length; ky++) {
+                        // цикл по столбцам ядра
+                          for (let kx = 0; kx < kernel.length; kx++) {
+                              // координаты пикселя, на который указывает ядро
+                              const px = x + kx - halfKernel;
+                              const py = y + ky - halfKernel;
+                              const idx = (py * width + px) * 4; // позиция, где начинается пиксель, т.к. пиксель это (R, G, B, A)
+          
+                              // свертка
+                              r += imageData[idx] * kernel[ky][kx];
+                              g += imageData[idx + 1] * kernel[ky][kx];
+                              b += imageData[idx + 2] * kernel[ky][kx];
+                          }
+                      }
+                      // записываю новые значения rgb
+                      const idx = (y * width + x) * 4;
+                      output[idx] = Math.min(Math.max(Math.round(r), 0), 255);
+                      output[idx + 1] = Math.min(Math.max(Math.round(g), 0), 255);
+                      output[idx + 2] = Math.min(Math.max(Math.round(b), 0), 255);
+                      output[idx + 3] = imageData[idx + 3]; // альфа без изменений
+                  }
+              }
+              return output;
+          }
+          
+          // основная часть
+          const img = new Image();
+          img.src = 'skebob.jpg';
+          img.onload = () => {
+              // меняю размер изображения
+              const scale = 480 / img.width;
+              const width = Math.round(img.width * scale);
+              const height = Math.round(img.height * scale);
+          
+              // оригинальное изображение
+              const canvasOrig = document.getElementById('original');
+              canvasOrig.width = width;
+              canvasOrig.height = height;
+              const ctxOrig = canvasOrig.getContext('2d');
+              ctxOrig.drawImage(img, 0, 0, width, height);
+          
+              // извлекаю массив пикселей
+              const imageData = ctxOrig.getImageData(0, 0, width, height);
+              const data = imageData.data;
+          
+              // параметры
+              const sigma = 20;
+              const kernelSize = 5;
+          
+              // применяю фильтр
+              const kernel = makeKernel(kernelSize, sigma);
+              const blurred = applyGaussianFilterManual(data, width, height, kernel);
+          
+              // отображаю результат
+              const canvasBlur = document.getElementById('blurred');
+              canvasBlur.width = width;
+              canvasBlur.height = height;
+              const ctxBlur = canvasBlur.getContext('2d');
+              ctxBlur.putImageData(new ImageData(blurred, width, height), 0, 0);
+          };
+        </script>
+    </body>
+</html>
