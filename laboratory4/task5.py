@@ -32,7 +32,7 @@ def apply_gaussian_filter_manual(image, kernel):
     result = np.clip(result, 0, 255)
     return result.astype(np.uint8)
 
-def task1(path, sigma, kernel_size):
+def task1(path, kernel_size, sigma):
     img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     resized_img = cv2.resize(img, (480, 360), interpolation=cv2.INTER_AREA)
     
@@ -107,12 +107,12 @@ def task3(length_normalized, angle_normalized):
     
     return smoothed_matrix_normalized
     
-def task4(id, smoothed_matrix_normalized, high_step, low_step, weak_pixel):
+def task4(id, smoothed_matrix_normalized, high_step, low_step):
     T_high = high_step * smoothed_matrix_normalized.max()
     T_low = low_step * T_high
     
     strong = 255
-    weak = weak_pixel
+    weak = 50
     
     height, width = smoothed_matrix_normalized.shape
     
@@ -142,20 +142,21 @@ def task4(id, smoothed_matrix_normalized, high_step, low_step, weak_pixel):
     
     return result_matrix
     
-def task5(id, image_path, kernel_size, deviation, high_step, low_step, weak_pixel):
+def task5(id, image_path, kernel_size, deviation, high_step, low_step):
     blurred_image = task1(image_path, kernel_size, deviation)
     G_x, G_y, length_normalized,angle_normalized = task2(blurred_image)
     smoothed_matrix_normalized = task3(length_normalized,angle_normalized)
-    result = task4(id, smoothed_matrix_normalized, high_step, low_step, weak_pixel)
+    result = task4(id, smoothed_matrix_normalized, high_step, low_step)
     
     return result
     
-image = cv2.imread("/Users/mariamasenko/University/7_semestr/cv/laboratory4/cat_img.jpg", cv2.IMREAD_GRAYSCALE)
+image = cv2.imread("/Users/mariamasenko/University/7_semestr/cv/laboratory4/cat_meme.webp", cv2.IMREAD_GRAYSCALE)
 resized_image = cv2.resize(image, (480, 360), interpolation=cv2.INTER_AREA)
 cv2.imshow("Origin image", resized_image)
 
-example1 = task5(1, "/Users/mariamasenko/University/7_semestr/cv/laboratory4/cat_img.jpg", 3, 1, 0.2, 0.4, 50)
-example2 = task5(2, "/Users/mariamasenko/University/7_semestr/cv/laboratory4/cat_img.jpg", 4, 3, 0.1, 0.5, 50)
+example1 = task5(1, "/Users/mariamasenko/University/7_semestr/cv/laboratory4/cat_meme.webp", 3, 3, 0.15, 0.5)
+example2 = task5(2, "/Users/mariamasenko/University/7_semestr/cv/laboratory4/cat_meme.webp", 3, 1, 0.2, 0.4)
+example3 = task5(3, "/Users/mariamasenko/University/7_semestr/cv/laboratory4/cat_meme.webp", 3, 1, 0.15, 0.35)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
